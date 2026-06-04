@@ -63,7 +63,13 @@
           <p class="card-text text-muted" style="font-size: 0.85em;">ID TMDB: <%= peli.getIdExternoApi() %></p>
 
           <div class="mt-auto">
-            <button class="btn btn-secondary w-100 disabled">Guardada en DB</button>
+            <form action="peliculas" method="POST" class="mt-2">
+              <input type="hidden" name="accion" value="eliminarLocal">
+              <input type="hidden" name="idApi" value="<%= peli.getIdExternoApi() %>">
+              <button type="submit" class="btn btn-outline-danger w-100" onclick="return confirm('¿Seguro que quieres borrarla, mijo?');">
+                🗑️ Eliminar
+              </button>
+            </form>
           </div>
         </div>
       </div>

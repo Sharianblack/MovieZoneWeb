@@ -73,30 +73,45 @@ public class PeliculaController extends HttpServlet {
 
         if ("guardarLocal".equals(accion)) {
             try {
-                // Atrapamos los datos que nos envía el formulario (o el front-end)
                 int idApi = Integer.parseInt(request.getParameter("idApi"));
                 String titulo = request.getParameter("titulo");
                 String categoria = request.getParameter("categoria");
+                String posterUrl = request.getParameter("posterUrl");
 
-                // Armamos el objeto modelo
                 PeliculaGuardada nuevaPeli = new PeliculaGuardada();
                 nuevaPeli.setIdExternoApi(idApi);
                 nuevaPeli.setTitulo(titulo);
                 nuevaPeli.setCategoriaLocal(categoria);
+                nuevaPeli.setPosterUrl(posterUrl);
 
-                // Usamos el DAO para guardarlo en PostgreSQL
                 boolean exito = peliculaDAO.guardarPeliculaLocal(nuevaPeli);
 
+                // EN LUGAR DE IMPRIMIR TEXTO FEO, MANDAMOS UN MENSAJE A LA VISTA
                 if (exito) {
-                    response.getWriter().println("¡Pelicula '" + titulo + "' guardada con exito en la base de datos!");
+                    request.setAttribute("mensajeExito", "¡Película '" + titulo + "' añadida a favoritos! 🍿");
                 } else {
-                    response.getWriter().println("Error al guardar la pelicula. Revisa si ya existe.");
+                    request.setAttribute("mensajeError", "La película '" + titulo + "' ya está en tu lista. ⚠️");
                 }
+
+                // Redirigimos de vuelta a la página principal sin perder el estilo
+                request.getRequestDispatcher("index.jsp").forward(request, response);
+
             } catch (NumberFormatException e) {
-                response.getWriter().println("Error: El ID de la API debe ser un numero.");
+                request.setAttribute("mensajeError", "Error procesando el ID de la película.");
+                request.getRequestDispatcher("index.jsp").forward(request, response);
             }
-        } else {
-            response.getWriter().println("Accion no soportada en POST.");
+
+        } else if ("eliminarLocal".equals(accion)) {
+            // Lógica para el nuevo botón de eliminar
+            try {
+                int idApi = Integer.parseInt(request.getParameter("idApi"));
+                peliculaDAO.eliminarPeliculaLocal(idApi);
+
+                // Refrescamos la lista de favoritos de una
+                response.sendRedirect("peliculas?accion=listarFavoritos");
+            } catch (Exception e) {
+                response.sendRedirect("peliculas?accion=listarFavoritos");
+            }
         }
     }
 }

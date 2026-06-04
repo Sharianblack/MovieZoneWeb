@@ -31,6 +31,25 @@
 </nav>
 
 <div class="container mt-5">
+    <%
+        String mensajeExito = (String) request.getAttribute("mensajeExito");
+        if (mensajeExito != null) {
+    %>
+    <div class="alert alert-success alert-dismissible fade show text-center" role="alert">
+        <strong>¡De lujo!</strong> <%= mensajeExito %>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    <% } %>
+
+    <%
+        String mensajeError = (String) request.getAttribute("mensajeError");
+        if (mensajeError != null) {
+    %>
+    <div class="alert alert-warning alert-dismissible fade show text-center" role="alert">
+        <strong>¡Pilas!</strong> <%= mensajeError %>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    <% } %>
     <div class="row justify-content-center">
         <div class="col-md-8 text-center">
             <h1 class="mb-4">Encuentra tus películas favoritas</h1>

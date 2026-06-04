@@ -19,8 +19,8 @@ public class PeliculaDAO {
     public boolean guardarPeliculaLocal(PeliculaGuardada pelicula) {
 
         String sql = "INSERT INTO peliculas_guardadas "
-                + "(id_externo_api, titulo, categoria_local) "
-                + "VALUES (?, ?, ?)";
+                + "(id_externo_api, titulo, categoria_local, poster_url) "
+                + "VALUES (?, ?, ?, ?)";
 
         try (Connection con = ConexionDB.obtenerConexion();
              PreparedStatement ps = con.prepareStatement(sql)) {
@@ -34,12 +34,36 @@ public class PeliculaDAO {
             // Categoría local definida por el sistema
             ps.setString(3, pelicula.getCategoriaLocal());
 
+            // URL del póster de la película
+            ps.setString(4, pelicula.getPosterUrl());
+
             int filasAfectadas = ps.executeUpdate();
 
             return filasAfectadas > 0;
 
         } catch (SQLException e) {
             System.out.println("Error al guardar la película.");
+            e.printStackTrace();
+            return false;
+        }
+    }
+    /*
+     * =====================================================
+     * ELIMINAR PELÍCULA DE FAVORITOS
+     * =====================================================
+     */
+    public boolean eliminarPeliculaLocal(int idApi) {
+        String sql = "DELETE FROM peliculas_guardadas WHERE id_externo_api = ?";
+
+        try (Connection con = ConexionDB.obtenerConexion();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setInt(1, idApi);
+            int filasAfectadas = ps.executeUpdate();
+            return filasAfectadas > 0;
+
+        } catch (SQLException e) {
+            System.out.println("Error al eliminar la película.");
             e.printStackTrace();
             return false;
         }
@@ -84,10 +108,9 @@ public class PeliculaDAO {
                         rs.getString("categoria_local")
                 );
 
-                // Como la URL del póster NO está en la base de datos,
-                // colocamos una imagen temporal.
+                // Leemos la URL real desde PostgreSQL
                 peli.setPosterUrl(
-                        "https://via.placeholder.com/300x450?text=Mi+Favorita"
+                        rs.getString("poster_url")
                 );
 
                 lista.add(peli);
