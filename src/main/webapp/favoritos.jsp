@@ -25,13 +25,29 @@
       <span class="navbar-toggler-icon"></span>
     </button>
     <div class="collapse navbar-collapse" id="navbarNav">
-      <ul class="navbar-nav ms-auto">
+      <ul class="navbar-nav ms-auto align-items-center">
         <li class="nav-item">
           <a class="nav-link" href="index.jsp">Buscar</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link active" href="peliculas?accion=listarFavoritos">Mis Favoritos</a>
+          <a class="nav-link" href="peliculas?accion=listarFavoritos">Mis Favoritos</a>
         </li>
+        <%
+          // Leemos si hay un usuario logueado en la memoria
+          model.Usuario usuarioActivo = (model.Usuario) session.getAttribute("usuarioLogueado");
+          if (usuarioActivo != null) {
+        %>
+        <li class="nav-item ms-3">
+          <span class="text-light me-3">¡Qué más, <%= usuarioActivo.getNombreCompleto() %>! 👋</span>
+        </li>
+        <li class="nav-item">
+          <a class="btn btn-outline-danger btn-sm" href="usuario?accion=logout">Cerrar Sesión</a>
+        </li>
+        <% } else { %>
+        <li class="nav-item ms-3">
+          <a class="btn btn-outline-light btn-sm" href="login.jsp">Iniciar Sesión</a>
+        </li>
+        <% } %>
       </ul>
     </div>
   </div>

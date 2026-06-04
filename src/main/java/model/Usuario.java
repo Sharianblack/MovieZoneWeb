@@ -1,24 +1,14 @@
-package com.moviezone.model;
+package model;
 
 public class Usuario {
     private int idUsuario;
     private String nombreCompleto;
     private String correo;
-    private String contrasena;
+    private String password;
 
-    // Constructor vacío
     public Usuario() {
     }
 
-    // Constructor con todos los parámetros
-    public Usuario(int idUsuario, String nombreCompleto, String correo, String contrasena) {
-        this.idUsuario = idUsuario;
-        this.nombreCompleto = nombreCompleto;
-        this.correo = correo;
-        this.contrasena = contrasena;
-    }
-
-    // Getters y Setters
     public int getIdUsuario() { return idUsuario; }
     public void setIdUsuario(int idUsuario) { this.idUsuario = idUsuario; }
 
@@ -28,6 +18,6 @@ public class Usuario {
     public String getCorreo() { return correo; }
     public void setCorreo(String correo) { this.correo = correo; }
 
-    public String getContrasena() { return contrasena; }
-    public void setContrasena(String contrasena) { this.contrasena = contrasena; }
+    public String getPassword() { return password; }
+    public void setPassword(String password) { this.password = password; }
 }
