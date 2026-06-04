@@ -2,6 +2,7 @@ package controller;
 
 import dao.PeliculaDAO;
 import model.PeliculaGuardada;
+import service.MovieApiService;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -9,6 +10,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.List; // Importante agregar este import
 
 @WebServlet(name = "PeliculaController", urlPatterns = {"/peliculas"})
 public class PeliculaController extends HttpServlet {
@@ -28,13 +30,40 @@ public class PeliculaController extends HttpServlet {
         String accion = request.getParameter("accion");
 
         if ("buscar".equals(accion)) {
+
             String query = request.getParameter("query");
-            // NOTA: Aquí a futuro llamaremos a MovieApiService para consumir TMDB
-            response.getWriter().println("Buscando en la API externa la pelicula: " + query);
+
+            // Buscar películas en TMDB
+            MovieApiService apiService = new MovieApiService();
+            List<PeliculaGuardada> peliculas = apiService.buscarPeliculas(query);
+
+            // Enviar resultados al index.jsp
+            request.setAttribute("listaPeliculas", peliculas);
+            request.getRequestDispatcher("index.jsp")
+                    .forward(request, response);
+
+        } else if ("listarFavoritos".equals(accion)) {
+
+            // Consultar películas guardadas en PostgreSQL
+            List<PeliculaGuardada> misFavoritos =
+                    peliculaDAO.listarPeliculasGuardadas();
+
+            // Enviar la lista al JSP
+            request.setAttribute("listaFavoritos", misFavoritos);
+
+            // Mostrar favoritos.jsp
+            request.getRequestDispatcher("favoritos.jsp")
+                    .forward(request, response);
+
         } else {
-            response.getWriter().println("Bienvenido a las peliculas. Usa ?accion=buscar&query=nombre");
+
+            response.getWriter().println(
+                    "Bienvenido. Usa el formulario del index.jsp para buscar."
+            );
         }
+
     }
+
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)

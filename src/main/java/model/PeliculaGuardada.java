@@ -15,6 +15,10 @@ public class PeliculaGuardada {
         this.titulo = titulo;
         this.categoriaLocal = categoriaLocal;
     }
+    private String posterUrl;
+
+    public String getPosterUrl() { return posterUrl; }
+    public void setPosterUrl(String posterUrl) { this.posterUrl = posterUrl; }
 
     public int getIdPelicula() { return idPelicula; }
     public void setIdPelicula(int idPelicula) { this.idPelicula = idPelicula; }

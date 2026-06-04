@@ -1,4 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ page import="java.util.List" %>
+<%@ page import="model.PeliculaGuardada" %>
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -43,21 +45,33 @@
     </div>
 
     <div class="row mt-5">
+        <%
+            // Recuperamos la lista que nos mandó el Controlador desde la API
+            List<PeliculaGuardada> peliculas = (List<PeliculaGuardada>) request.getAttribute("listaPeliculas");
+
+            if (peliculas != null && !peliculas.isEmpty()) {
+        %>
         <div class="col-12">
-            <h3 class="mb-4">Resultados de Ejemplo (Simulación):</h3>
+            <h3 class="mb-4">Resultados de tu búsqueda:</h3>
         </div>
+        <%
+            // Empezamos a dibujar una tarjeta por cada película que llegó
+            for (PeliculaGuardada peli : peliculas) {
+        %>
 
         <div class="col-md-3 mb-4">
             <div class="card h-100 shadow-sm">
-                <img src="https://via.placeholder.com/300x450?text=Poster+Pelicula" class="card-img-top" alt="Poster">
+                <img src="<%= peli.getPosterUrl() %>" class="card-img-top" alt="Poster de <%= peli.getTitulo() %>" style="height: 400px; object-fit: cover;">
                 <div class="card-body d-flex flex-column">
-                    <h5 class="card-title">Batman: The Dark Knight</h5>
-                    <p class="card-text text-muted">Acción / Drama</p>
+                    <h5 class="card-title"><%= peli.getTitulo() %></h5>
+                    <p class="card-text text-muted">ID TMDB: <%= peli.getIdExternoApi() %></p>
 
                     <form action="peliculas" method="POST" class="mt-auto">
                         <input type="hidden" name="accion" value="guardarLocal">
-                        <input type="hidden" name="idApi" value="155"> <input type="hidden" name="titulo" value="Batman: The Dark Knight">
-                        <input type="hidden" name="categoria" value="Accion">
+                        <input type="hidden" name="idApi" value="<%= peli.getIdExternoApi() %>">
+                        <input type="hidden" name="titulo" value="<%= peli.getTitulo() %>">
+                        <input type="hidden" name="categoria" value="<%= peli.getCategoriaLocal() %>">
+                        <input type="hidden" name="posterUrl" value="<%= peli.getPosterUrl() %>">
 
                         <button type="submit" class="btn btn-outline-success w-100">❤️ Guardar Favorito</button>
                     </form>
@@ -65,25 +79,14 @@
             </div>
         </div>
 
-        <div class="col-md-3 mb-4">
-            <div class="card h-100 shadow-sm">
-                <img src="https://via.placeholder.com/300x450?text=Poster+Pelicula" class="card-img-top" alt="Poster">
-                <div class="card-body d-flex flex-column">
-                    <h5 class="card-title">Interstellar</h5>
-                    <p class="card-text text-muted">Ciencia Ficción</p>
-
-                    <form action="peliculas" method="POST" class="mt-auto">
-                        <input type="hidden" name="accion" value="guardarLocal">
-                        <input type="hidden" name="idApi" value="157336">
-                        <input type="hidden" name="titulo" value="Interstellar">
-                        <input type="hidden" name="categoria" value="Ciencia Ficcion">
-
-                        <button type="submit" class="btn btn-outline-success w-100">❤️ Guardar Favorito</button>
-                    </form>
-                </div>
-            </div>
+        <%
+            } // Fin del for
+        } else if (peliculas != null) {
+        %>
+        <div class="col-12 text-center">
+            <h4 class="text-danger">No se encontraron películas con ese nombre. 😔</h4>
         </div>
-
+        <% } %>
     </div>
 </div>
 
