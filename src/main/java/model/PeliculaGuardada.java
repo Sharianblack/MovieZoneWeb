@@ -5,6 +5,8 @@ public class PeliculaGuardada {
     private int idExternoApi;
     private String titulo;
     private String categoriaLocal;
+    private int calificacionUsuario; // Guardará de 1 a 5 estrellas (0 si no tiene)
+    private String comentarioUsuario; // Guardará el texto de la reseña
 
     public PeliculaGuardada() {
     }
@@ -31,4 +33,10 @@ public class PeliculaGuardada {
 
     public String getCategoriaLocal() { return categoriaLocal; }
     public void setCategoriaLocal(String categoriaLocal) { this.categoriaLocal = categoriaLocal; }
+
+    public int getCalificacionUsuario() { return calificacionUsuario; }
+    public void setCalificacionUsuario(int calificacionUsuario) { this.calificacionUsuario = calificacionUsuario; }
+
+    public String getComentarioUsuario() { return comentarioUsuario; }
+    public void setComentarioUsuario(String comentarioUsuario) { this.comentarioUsuario = comentarioUsuario; }
 }

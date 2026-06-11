@@ -1,4 +1,5 @@
 package model;
+
 import java.sql.Timestamp;
 
 public class Resena {
@@ -9,18 +10,9 @@ public class Resena {
     private String comentario;
     private Timestamp fechaPublicacion;
 
-    public Resena() {
-    }
+    public Resena() {}
 
-    public Resena(int idResena, int idUsuario, int idPelicula, int calificacion, String comentario, Timestamp fechaPublicacion) {
-        this.idResena = idResena;
-        this.idUsuario = idUsuario;
-        this.idPelicula = idPelicula;
-        this.calificacion = calificacion;
-        this.comentario = comentario;
-        this.fechaPublicacion = fechaPublicacion;
-    }
-
+    // Getters y Setters
     public int getIdResena() { return idResena; }
     public void setIdResena(int idResena) { this.idResena = idResena; }
 

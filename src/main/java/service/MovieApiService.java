@@ -9,6 +9,7 @@ import model.PeliculaGuardada;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLEncoder; // Agregamos esto para manejar espacios y tildes
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,18 +17,22 @@ public class MovieApiService {
 
     // Tu clave real de TMDB
     private static final String API_KEY = "cd3b79b44b4ea741d7a47ec0085f8e90";
-    private static final String BASE_URL = "https://api.themoviedb.org/3/search/movie";
 
-    public List<PeliculaGuardada> buscarPeliculas(String query) {
+    // Borramos el BASE_URL estático porque ahora cambiaremos entre /movie y /tv
+
+    public List<PeliculaGuardada> buscarPeliculas(String query, String tipoBusqueda) {
         List<PeliculaGuardada> resultados = new ArrayList<>();
         try {
-            // Limpiamos los espacios
-            String queryUrl = query.replace(" ", "%20");
+            // Mejoramos la limpieza usando URLEncoder para que soporte tildes y ñ sin romperse
+            String queryUrl = URLEncoder.encode(query, "UTF-8");
 
-            // Armamos la URL final
-            String urlString = BASE_URL + "?api_key=" + API_KEY + "&query=" + queryUrl + "&language=es-ES";
+            // Armamos la URL dinámica y le clavamos el idioma Español Latino (es-MX)
+            String urlString = "https://api.themoviedb.org/3/search/" + tipoBusqueda +
+                    "?api_key=" + API_KEY +
+                    "&query=" + queryUrl +
+                    "&language=es-MX";
 
-            // Conexión a la antigua (100% compatible con Java 8)
+            // Conexión a la antigua
             URL url = new URL(urlString);
             HttpURLConnection conexion = (HttpURLConnection) url.openConnection();
             conexion.setRequestMethod("GET");
@@ -44,11 +49,25 @@ public class MovieApiService {
 
                     PeliculaGuardada peli = new PeliculaGuardada();
                     peli.setIdExternoApi(peliJson.get("id").getAsInt());
-                    peli.setTitulo(peliJson.get("title").getAsString());
-                    peli.setCategoriaLocal("General");
 
                     // ==========================================
-                    // ¡AQUÍ ESTÁ LA MAGIA QUE SE ME OLVIDÓ PONER!
+                    // EL TRUCO DE TMDB: ¿Es Peli o es Serie?
+                    // ==========================================
+                    if (peliJson.has("title")) {
+                        // Las películas usan "title"
+                        peli.setTitulo(peliJson.get("title").getAsString());
+                        peli.setCategoriaLocal("Película");
+                    } else if (peliJson.has("name")) {
+                        // Las series y animes usan "name"
+                        peli.setTitulo(peliJson.get("name").getAsString());
+                        peli.setCategoriaLocal("Serie / Anime");
+                    } else {
+                        peli.setTitulo("Título desconocido");
+                        peli.setCategoriaLocal("General");
+                    }
+
+                    // ==========================================
+                    // EL POSTER
                     // ==========================================
                     JsonElement posterElement = peliJson.get("poster_path");
                     if (posterElement != null && !posterElement.isJsonNull()) {

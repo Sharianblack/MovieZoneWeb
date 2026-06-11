@@ -259,10 +259,11 @@ body {
     font-size: 0.9rem;
     margin-bottom: 2.5rem;
 }
+/* ===== HERO / BÚSQUEDA ===== */
 
 .search-form {
     display: flex;
-    max-width: 580px;
+    max-width: 720px; /* <-- Lo hicimos más ancho para que quepa todo */
     margin: 0 auto;
     gap: 0;
     border: 1px solid var(--gold-muted);
@@ -275,6 +276,26 @@ body {
     border-color: var(--gold);
 }
 
+/* NUEVO: Estilos oscuros para el selector */
+.search-form select {
+    background-color: var(--surface-2);
+    color: var(--text-primary);
+    border: none;
+    border-right: 1px solid var(--surface-3); /* Una línea sutil para separar */
+    padding: 0 1.25rem;
+    font-size: 0.95rem;
+    font-family: inherit;
+    outline: none;
+    cursor: pointer;
+}
+
+/* Opciones desplegables oscuras */
+.search-form select option {
+    background-color: var(--surface-1);
+    color: var(--text-primary);
+    padding: 10px;
+}
+
 .search-form input[type="text"] {
     flex: 1;
     padding: 0.85rem 1.25rem;
@@ -285,10 +306,6 @@ body {
     color: var(--text-primary);
     outline: none;
     min-width: 0;
-}
-
-.search-form input[type="text"]::placeholder {
-    color: var(--text-muted);
 }
 
 .btn-buscar {

@@ -32,13 +32,20 @@ public class PeliculaController extends HttpServlet {
 
         if ("buscar".equals(accion)) {
             String query = request.getParameter("query");
+            // NUEVO: Atrapamos si eligió "movie" o "tv"
+            String tipoBusqueda = request.getParameter("tipoBusqueda");
+
+            // Por si acaso llega nulo, le ponemos película por defecto
+            if (tipoBusqueda == null) tipoBusqueda = "movie";
+
             service.MovieApiService apiService = new service.MovieApiService();
-            List<model.PeliculaGuardada> peliculas = apiService.buscarPeliculas(query);
+            // Le pasamos el tipo de búsqueda también al método
+            List<model.PeliculaGuardada> peliculas = apiService.buscarPeliculas(query, tipoBusqueda);
 
             request.setAttribute("listaPeliculas", peliculas);
             request.getRequestDispatcher("index.jsp").forward(request, response);
 
-        } else if ("listarFavoritos".equals(accion)) {
+        }else if ("listarFavoritos".equals(accion)) {
             jakarta.servlet.http.HttpSession sesion = request.getSession();
             model.Usuario usuarioActivo = (model.Usuario) sesion.getAttribute("usuarioLogueado");
 
@@ -72,39 +79,93 @@ public class PeliculaController extends HttpServlet {
                     com.itextpdf.text.pdf.PdfWriter.getInstance(document, response.getOutputStream());
                     document.open();
 
-                    // Título del PDF
-                    com.itextpdf.text.Font fontTitulo = new com.itextpdf.text.Font(com.itextpdf.text.Font.FontFamily.HELVETICA, 20, com.itextpdf.text.Font.BOLD);
-                    com.itextpdf.text.Paragraph titulo = new com.itextpdf.text.Paragraph("🎬 Reporte de Favoritos - MovieZone", fontTitulo);
+
+
+                    // 1. Título con el color ROJO de tu diseño (RGB: 229, 57, 53)
+                    com.itextpdf.text.Font fontTitulo = new com.itextpdf.text.Font(com.itextpdf.text.Font.FontFamily.HELVETICA, 24, com.itextpdf.text.Font.BOLD, new com.itextpdf.text.BaseColor(229, 57, 53));
+                    com.itextpdf.text.Paragraph titulo = new com.itextpdf.text.Paragraph("🎬 Reporte de Favoritos", fontTitulo);
                     titulo.setAlignment(com.itextpdf.text.Element.ALIGN_CENTER);
                     document.add(titulo);
-                    document.add(new com.itextpdf.text.Paragraph("\n")); // Espacio
 
-                    // Datos del Usuario
-                    document.add(new com.itextpdf.text.Paragraph("Usuario: " + usuarioActivo.getNombreCompleto()));
-                    document.add(new com.itextpdf.text.Paragraph("Correo: " + usuarioActivo.getCorreo()));
-                    document.add(new com.itextpdf.text.Paragraph("Total de películas guardadas: " + misFavoritos.size()));
-                    document.add(new com.itextpdf.text.Paragraph("\n")); // Espacio
+                    // ==========================================
+                    // NUEVO: INSERTAR LOGO REAL EN EL PDF
+                    // ==========================================
+                    try {
+                        // Le pedimos al Tomcat la ruta física exacta de la imagen
+                        String rutaLogo = getServletContext().getRealPath("/img/logo2.png");
+                        com.itextpdf.text.Image logo = com.itextpdf.text.Image.getInstance(rutaLogo);
 
-                    // Creamos la tabla con 3 columnas
-                    com.itextpdf.text.pdf.PdfPTable table = new com.itextpdf.text.pdf.PdfPTable(3);
-                    table.setWidthPercentage(100); // Que ocupe todo el ancho
+                        // Ajustamos el tamaño para que no ocupe toda la hoja (ej: 60x60 píxeles)
+                        logo.scaleToFit(60, 60);
+                        logo.setAlignment(com.itextpdf.text.Element.ALIGN_CENTER);
 
-                    // Encabezados de la tabla
-                    table.addCell("ID TMDB");
-                    table.addCell("Título de la Película");
-                    table.addCell("Categoría Local");
-
-                    // Llenamos la tabla con el bucle for
-                    for (model.PeliculaGuardada p : misFavoritos) {
-                        table.addCell(String.valueOf(p.getIdExternoApi()));
-                        table.addCell(p.getTitulo());
-                        table.addCell(p.getCategoriaLocal() != null ? p.getCategoriaLocal() : "Sin categoría");
+                        // Lo agregamos al documento
+                        document.add(logo);
+                    } catch (Exception e) {
+                        System.out.println("Nota: No se pudo cargar el logo en el PDF - " + e.getMessage());
                     }
 
-                    // Metemos la tabla al documento y cerramos
-                    document.add(table);
-                    document.close();
+                    // Subtítulo con el nombre de la app
+                    com.itextpdf.text.Font fontSub = new com.itextpdf.text.Font(com.itextpdf.text.Font.FontFamily.HELVETICA, 14, com.itextpdf.text.Font.ITALIC, com.itextpdf.text.BaseColor.DARK_GRAY);
+                    com.itextpdf.text.Paragraph subTitulo = new com.itextpdf.text.Paragraph("MovieZone - Tu colección personal\n\n", fontSub);
+                    subTitulo.setAlignment(com.itextpdf.text.Element.ALIGN_CENTER);
+                    document.add(subTitulo);
 
+                    // 2. Datos del Usuario
+                    document.add(new com.itextpdf.text.Paragraph("👤 Usuario: " + usuarioActivo.getNombreCompleto()));
+                    document.add(new com.itextpdf.text.Paragraph("✉️ Correo: " + usuarioActivo.getCorreo()));
+                    document.add(new com.itextpdf.text.Paragraph("📊 Total guardadas: " + misFavoritos.size() + " títulos\n\n"));
+
+                    // 3. Creamos la tabla y sus tamaños
+                    com.itextpdf.text.pdf.PdfPTable table = new com.itextpdf.text.pdf.PdfPTable(4);
+                    table.setWidthPercentage(100);
+                    table.setWidths(new float[]{3f, 2f, 1.5f, 3.5f});
+
+                    // 4. ESTILO PARA LA CABECERA (Fondo Rojo Oscuro, Letras Blancas)
+                    com.itextpdf.text.Font fontCabecera = new com.itextpdf.text.Font(com.itextpdf.text.Font.FontFamily.HELVETICA, 12, com.itextpdf.text.Font.BOLD, com.itextpdf.text.BaseColor.WHITE);
+                    com.itextpdf.text.BaseColor colorFondoCabecera = new com.itextpdf.text.BaseColor(183, 28, 28); // Tu var(--red-dark)
+
+                    String[] cabeceras = {"Título", "Categoría", "Calificación", "Tu Opinión"};
+                    for (String cabecera : cabeceras) {
+                        com.itextpdf.text.pdf.PdfPCell celda = new com.itextpdf.text.pdf.PdfPCell(new com.itextpdf.text.Phrase(cabecera, fontCabecera));
+                        celda.setBackgroundColor(colorFondoCabecera);
+                        celda.setPadding(8f);
+                        celda.setHorizontalAlignment(com.itextpdf.text.Element.ALIGN_CENTER);
+                        table.addCell(celda);
+                    }
+
+                    // 5. Llenamos los datos
+                    com.itextpdf.text.Font fontDatos = new com.itextpdf.text.Font(com.itextpdf.text.Font.FontFamily.HELVETICA, 10, com.itextpdf.text.Font.NORMAL, com.itextpdf.text.BaseColor.BLACK);
+
+                    for (model.PeliculaGuardada p : misFavoritos) {
+                        table.addCell(new com.itextpdf.text.Phrase(p.getTitulo(), fontDatos));
+                        table.addCell(new com.itextpdf.text.Phrase(p.getCategoriaLocal() != null ? p.getCategoriaLocal() : "General", fontDatos));
+
+                        if (p.getCalificacionUsuario() > 0) {
+                            // Centramos la calificación
+                            com.itextpdf.text.pdf.PdfPCell celdaNota = new com.itextpdf.text.pdf.PdfPCell(new com.itextpdf.text.Phrase(p.getCalificacionUsuario() + " / 5", fontDatos));
+                            celdaNota.setHorizontalAlignment(com.itextpdf.text.Element.ALIGN_CENTER);
+                            table.addCell(celdaNota);
+
+                            table.addCell(new com.itextpdf.text.Phrase(p.getComentarioUsuario(), fontDatos));
+                        } else {
+                            com.itextpdf.text.pdf.PdfPCell celdaNota = new com.itextpdf.text.pdf.PdfPCell(new com.itextpdf.text.Phrase("Sin calificar", fontDatos));
+                            celdaNota.setHorizontalAlignment(com.itextpdf.text.Element.ALIGN_CENTER);
+                            table.addCell(celdaNota);
+
+                            table.addCell(new com.itextpdf.text.Phrase("-", fontDatos));
+                        }
+                    }
+
+                    document.add(table);
+
+                    // 6. Footer con la fecha y hora exacta
+                    com.itextpdf.text.Font fontFooter = new com.itextpdf.text.Font(com.itextpdf.text.Font.FontFamily.HELVETICA, 9, com.itextpdf.text.Font.ITALIC, com.itextpdf.text.BaseColor.GRAY);
+                    com.itextpdf.text.Paragraph footer = new com.itextpdf.text.Paragraph("\n\nReporte generado automáticamente por MovieZone el: " + new java.util.Date().toString(), fontFooter);
+                    footer.setAlignment(com.itextpdf.text.Element.ALIGN_RIGHT);
+                    document.add(footer);
+
+                    document.close();
                 } catch (Exception e) {
                     System.out.println("Error al generar el PDF: " + e.getMessage());
                 }
@@ -168,6 +229,26 @@ public class PeliculaController extends HttpServlet {
 
                 response.sendRedirect("peliculas?accion=listarFavoritos");
             } catch (Exception e) {
+                response.sendRedirect("peliculas?accion=listarFavoritos");
+            }
+        }
+        // ==========================================
+        // NUEVO: GUARDAR RESEÑA DESDE EL MODAL
+        // ==========================================
+        else if ("guardarResena".equals(accion)) {
+            try {
+                int idApi = Integer.parseInt(request.getParameter("idApi"));
+                int calificacion = Integer.parseInt(request.getParameter("calificacion"));
+                String comentario = request.getParameter("comentario");
+
+                // Mandamos a guardar la reseña en la base de datos
+                peliculaDAO.guardarResena(usuarioActivo.getIdUsuario(), idApi, calificacion, comentario);
+
+                // Recargamos la página de favoritos para que aparezcan las estrellitas de una
+                response.sendRedirect("peliculas?accion=listarFavoritos");
+
+            } catch (Exception e) {
+                e.printStackTrace();
                 response.sendRedirect("peliculas?accion=listarFavoritos");
             }
         }

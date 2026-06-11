@@ -96,23 +96,36 @@ public class PeliculaDAO {
     // ========================================================
     // 2. LISTAR PELÍCULAS FILTRADAS POR EL ID DEL USUARIO (INNER JOIN)
     // ========================================================
+    // ========================================================
+    // LISTAR PELÍCULAS CON SUS RESEÑAS (LEFT JOIN)
+    // ========================================================
     public List<PeliculaGuardada> listarPeliculasPorUsuario(int idUsuario) {
         List<PeliculaGuardada> lista = new java.util.ArrayList<>();
-        String sql = "SELECT p.* FROM peliculas_guardadas p " +
+        // Traemos la peli y, si existe, la reseña que este usuario específico le puso
+        String sql = "SELECT p.*, r.calificacion, r.comentario FROM peliculas_guardadas p " +
                 "INNER JOIN favoritos f ON p.id_pelicula = f.id_pelicula " +
+                "LEFT JOIN resenas r ON p.id_pelicula = r.id_pelicula AND r.id_usuario = ? " +
                 "WHERE f.id_usuario = ?";
 
         try (Connection con = dao.ConexionDB.obtenerConexion();
              PreparedStatement ps = con.prepareStatement(sql)) {
 
             ps.setInt(1, idUsuario);
+            ps.setInt(2, idUsuario);
+
             try (ResultSet rs = ps.executeQuery()) {
                 while (rs.next()) {
                     PeliculaGuardada p = new PeliculaGuardada();
+                    p.setIdPelicula(rs.getInt("id_pelicula")); // Asegúrate de tener este setter para el id interno
                     p.setIdExternoApi(rs.getInt("id_externo_api"));
                     p.setTitulo(rs.getString("titulo"));
                     p.setCategoriaLocal(rs.getString("categoria_local"));
                     p.setPosterUrl(rs.getString("poster_url"));
+
+                    // Llenamos los campos de la reseña (si no tiene, llegarán como 0 y null)
+                    p.setCalificacionUsuario(rs.getInt("calificacion"));
+                    p.setComentarioUsuario(rs.getString("comentario"));
+
                     lista.add(p);
                 }
             }
@@ -120,6 +133,39 @@ public class PeliculaDAO {
             e.printStackTrace();
         }
         return lista;
+    }
+
+    // ========================================================
+    // GUARDAR O ACTUALIZAR UNA RESEÑA
+    // ========================================================
+    public boolean guardarResena(int idUsuario, int idExternoApi, int calificacion, String comentario) {
+        // Primero buscamos el id_pelicula interno usando el id de la API
+        String sqlGetId = "SELECT id_pelicula FROM peliculas_guardadas WHERE id_externo_api = ?";
+        String sqlInsert = "INSERT INTO resenas (id_usuario, id_pelicula, calificacion, comentario) VALUES (?, ?, ?, ?)";
+
+        try (Connection con = dao.ConexionDB.obtenerConexion();
+             PreparedStatement psId = con.prepareStatement(sqlGetId)) {
+
+            psId.setInt(1, idExternoApi);
+            try (ResultSet rs = psId.executeQuery()) {
+                if (rs.next()) {
+                    int idPeliculaBase = rs.getInt("id_pelicula");
+
+                    // Insertamos la reseña limpia
+                    try (PreparedStatement psInsert = con.prepareStatement(sqlInsert)) {
+                        psInsert.setInt(1, idUsuario);
+                        psInsert.setInt(2, idPeliculaBase);
+                        psInsert.setInt(3, calificacion);
+                        psInsert.setString(4, comentario);
+
+                        return psInsert.executeUpdate() > 0;
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 
     // ========================================================

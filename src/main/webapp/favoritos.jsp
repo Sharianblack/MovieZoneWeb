@@ -7,6 +7,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>MovieZone - Mis Favoritos</title>
+  <link rel="icon" href="img/logo.png" type="image/png">
   <link rel="stylesheet" href="css/favorito.css">
 </head>
 <body>
@@ -61,9 +62,22 @@
       <div class="card-body">
         <p class="card-title"><%= peli.getTitulo() %></p>
         <p class="card-categoria"><%= peli.getCategoriaLocal() %></p>
-        <p class="card-id">ID TMDB: <%= peli.getIdExternoApi() %></p>
 
-        <form action="peliculas" method="POST">
+        <div class="resena-box">
+          <% if (peli.getCalificacionUsuario() > 0) { %>
+          <p class="estrellas">
+            <% for (int i = 0; i < peli.getCalificacionUsuario(); i++) out.print("⭐"); %>
+          </p>
+          <p class="comentario-texto">"<%= peli.getComentarioUsuario() %>"</p>
+          <% } else { %>
+          <button type="button" class="btn-calificar"
+                  onclick="abrirModal(<%= peli.getIdExternoApi() %>, '<%= peli.getTitulo().replace("'", "\\'") %>')">
+            Calificar
+          </button>
+          <% } %>
+        </div>
+
+        <form action="peliculas" method="POST" style="margin-top: auto;">
           <input type="hidden" name="accion" value="eliminarLocal">
           <input type="hidden" name="idApi" value="<%= peli.getIdExternoApi() %>">
           <button type="submit" class="btn-eliminar"
@@ -88,6 +102,49 @@
   <% } %>
 
 </div>
+
+<!-- MODAL RESEÑA -->
+<div id="modalResena" class="modal-overlay">
+  <div class="modal-content">
+
+    <span class="close-modal" onclick="cerrarModal()">&times;</span>
+    <h2>Calificar Película</h2>
+    <p id="modalTitulo"></p>
+
+    <form action="peliculas" method="POST" class="modal-form">
+      <input type="hidden" name="accion" value="guardarResena">
+      <input type="hidden" name="idApi" id="modalIdApi" value="">
+
+      <label>Calificación (1 a 5)</label>
+      <input type="number" name="calificacion" min="1" max="5" value="5" required>
+
+      <label>Tu Opinión</label>
+      <textarea name="comentario" rows="3" placeholder="¿Qué te pareció?" required></textarea>
+
+      <button type="submit" class="btn-guardar-resena">Guardar Reseña</button>
+    </form>
+
+  </div>
+</div>
+
+<script>
+  function abrirModal(idApi, titulo) {
+    document.getElementById('modalIdApi').value = idApi;
+    document.getElementById('modalTitulo').innerText = titulo;
+    document.getElementById('modalResena').style.display = 'flex';
+  }
+
+  function cerrarModal() {
+    document.getElementById('modalResena').style.display = 'none';
+  }
+
+  window.onclick = function(event) {
+    var modal = document.getElementById('modalResena');
+    if (event.target === modal) {
+      modal.style.display = 'none';
+    }
+  }
+</script>
 
 </body>
 </html>

@@ -7,6 +7,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>MovieZone - Búsqueda</title>
+    <link rel="icon" href="img/logo.png" type="image/png">
     <link rel="stylesheet" href="css/index.css">
 </head>
 <body>
@@ -65,9 +66,15 @@
         <h1>Encuentra tus <span>películas</span> favoritas</h1>
         <p class="search-tagline">Busca entre miles de títulos y guarda los que más te gusten</p>
 
-        <form action="peliculas" method="GET" class="search-form">
+        <form action="peliculas" method="GET" class="search-form shadow-sm">
             <input type="hidden" name="accion" value="buscar">
-            <input type="text" name="query" placeholder="Ej: Batman, Avengers, Shrek..." required>
+
+            <select name="tipoBusqueda">
+                <option value="movie">Películas</option>
+                <option value="tv">Series / Animes</option>
+            </select>
+
+            <input type="text" name="query" placeholder="Ej: Batman, Shrek, Naruto..." required>
             <button type="submit" class="btn-buscar">Buscar</button>
         </form>
     </div>
