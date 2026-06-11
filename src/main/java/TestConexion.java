@@ -38,7 +38,7 @@ public class TestConexion {
         peliPrueba.setTitulo("Pelicula de Prueba Test");
         peliPrueba.setCategoriaLocal("Test/Accion");
 
-        boolean fueGuardado = dao.guardarPeliculaLocal(peliPrueba);
+        boolean fueGuardado = dao.guardarPeliculaFavorita(peliPrueba, 1);
 
         if (fueGuardado) {
             System.out.println("¡Belleza! La pelicula se inserto correctamente en tu tabla peliculas_guardadas.");

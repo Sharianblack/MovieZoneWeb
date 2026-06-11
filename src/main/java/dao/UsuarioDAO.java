@@ -38,8 +38,10 @@ public class UsuarioDAO {
     // ==========================================
     // LOGIN COMPARANDO EL HASH
     // ==========================================
+    // ==========================================
+    // LOGIN COMPARANDO EL HASH
+    // ==========================================
     public Usuario validarLogin(String correo, String passwordIngresado) {
-        // OJO: Solo buscamos por correo, ya no por contraseña
         String sql = "SELECT * FROM usuarios WHERE correo = ?";
         Usuario usuario = null;
 
@@ -50,20 +52,17 @@ public class UsuarioDAO {
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    // Sacamos el garabato guardado en la base de datos
                     String hashEnBaseDatos = rs.getString("contrasena");
 
-                    // BCrypt compara la clave que puso en el formulario con el hash de la base
                     if (BCrypt.checkpw(passwordIngresado, hashEnBaseDatos)) {
-
-                        // Si coinciden, armamos el objeto usuario para que inicie sesión
                         usuario = new Usuario();
                         usuario.setIdUsuario(rs.getInt("id_usuario"));
                         usuario.setNombreCompleto(rs.getString("nombre_completo"));
                         usuario.setCorreo(rs.getString("correo"));
 
-                        // Opcional: no es necesario guardar el hash en la sesión por seguridad,
-                        // pero lo dejamos vacío para que no viaje en memoria.
+                        // NUEVO: Leemos el rol desde la base de datos
+                        usuario.setRol(rs.getString("rol"));
+
                         usuario.setPassword("");
                     }
                 }
@@ -72,7 +71,56 @@ public class UsuarioDAO {
             System.out.println("Error al validar login.");
             e.printStackTrace();
         }
-
         return usuario;
+    }
+
+    // ==========================================
+    // LISTAR USUARIOS PARA EL PANEL DE ADMIN
+    // ==========================================
+    public java.util.List<Usuario> listarUsuariosParaAdmin() {
+        java.util.List<Usuario> lista = new java.util.ArrayList<>();
+        // Hacemos un LEFT JOIN para contar cuántas películas tiene cada uno en 'favoritos'
+        String sql = "SELECT u.id_usuario, u.nombre_completo, u.correo, u.rol, COUNT(f.id_favorito) AS total_peliculas " +
+                "FROM usuarios u " +
+                "LEFT JOIN favoritos f ON u.id_usuario = f.id_usuario " +
+                "GROUP BY u.id_usuario " +
+                "ORDER BY u.id_usuario ASC";
+
+        try (Connection con = ConexionDB.obtenerConexion();
+             PreparedStatement ps = con.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                Usuario u = new Usuario();
+                u.setIdUsuario(rs.getInt("id_usuario"));
+                u.setNombreCompleto(rs.getString("nombre_completo"));
+                u.setCorreo(rs.getString("correo"));
+                u.setRol(rs.getString("rol"));
+                u.setTotalPeliculas(rs.getInt("total_peliculas")); // El conteo mágico
+                lista.add(u);
+            }
+        } catch (SQLException e) {
+            System.out.println("Error al listar usuarios.");
+            e.printStackTrace();
+        }
+        return lista;
+    }
+
+    // ==========================================
+    // ELIMINAR USUARIO DESDE EL PANEL
+    // ==========================================
+    public boolean eliminarUsuario(int idUsuario) {
+        String sql = "DELETE FROM usuarios WHERE id_usuario = ?";
+        try (Connection con = ConexionDB.obtenerConexion();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setInt(1, idUsuario);
+            return ps.executeUpdate() > 0;
+
+        } catch (SQLException e) {
+            System.out.println("Error al eliminar usuario.");
+            e.printStackTrace();
+            return false;
+        }
     }
 }

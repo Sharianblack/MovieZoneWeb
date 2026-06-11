@@ -1,0 +1,335 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap');
+
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+:root {
+    --red-light:     #ff6b6b;
+    --red:           #e53935;
+    --red-dark:      #b71c1c;
+    --red-muted:     #4a1010;
+    --black:         #000000;
+    --surface-0:     #080808;
+    --surface-1:     #100808;
+    --surface-2:     #180e0e;
+    --surface-3:     #221414;
+    --text-primary:  #f5f0f0;
+    --text-secondary:#c07070;
+    --text-muted:    #6b3a3a;
+    --green:         #27ae60;
+    --radius-sm:     4px;
+    --radius-md:     8px;
+    --radius-lg:     12px;
+    --transition:    0.2s ease;
+}
+
+html, body {
+    height: 100%;
+}
+
+body {
+    font-family: 'Montserrat', Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+    background-color: var(--surface-0);
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    overflow: hidden;
+}
+
+/* ===== FONDO ANIMADO ===== */
+
+body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+            radial-gradient(ellipse 80% 60% at 20% 50%, rgba(229, 57, 53, 0.06) 0%, transparent 60%),
+            radial-gradient(ellipse 60% 80% at 80% 50%, rgba(183, 28, 28, 0.05) 0%, transparent 60%);
+    animation: bgPulse 8s ease-in-out infinite alternate;
+    pointer-events: none;
+    z-index: 0;
+}
+
+@keyframes bgPulse {
+    0%   { opacity: 0.6; transform: scale(1); }
+    100% { opacity: 1;   transform: scale(1.05); }
+}
+
+body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+            radial-gradient(1px 1px at 15% 25%, rgba(229,57,53,0.3) 0%, transparent 100%),
+            radial-gradient(1px 1px at 75% 15%, rgba(229,57,53,0.2) 0%, transparent 100%),
+            radial-gradient(1px 1px at 90% 70%, rgba(229,57,53,0.25) 0%, transparent 100%),
+            radial-gradient(1px 1px at 30% 80%, rgba(229,57,53,0.2) 0%, transparent 100%),
+            radial-gradient(1px 1px at 55% 45%, rgba(229,57,53,0.15) 0%, transparent 100%);
+    animation: particlesDrift 12s ease-in-out infinite alternate;
+    pointer-events: none;
+    z-index: 0;
+}
+
+@keyframes particlesDrift {
+    0%   { transform: translateY(0px) translateX(0px); }
+    100% { transform: translateY(-20px) translateX(10px); }
+}
+
+/* ===== WRAPPER ===== */
+
+.registro-wrapper {
+    width: 100%;
+    max-width: 420px;
+    padding: 1rem;
+    position: relative;
+    z-index: 1;
+    animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(32px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ===== CARD ===== */
+
+.registro-card {
+    background-color: var(--surface-1);
+    border: 1px solid var(--surface-3);
+    border-radius: var(--radius-lg);
+    padding: 2.5rem 2rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.4s ease;
+}
+
+.registro-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--red), transparent);
+    animation: scanLine 3s ease-in-out infinite;
+}
+
+@keyframes scanLine {
+    0%   { transform: translateX(-100%); opacity: 0; }
+    50%  { opacity: 1; }
+    100% { transform: translateX(100%); opacity: 0; }
+}
+
+.registro-card:hover {
+    border-color: var(--red-muted);
+}
+
+/* ===== BRAND ===== */
+
+.registro-brand {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    color: var(--red);
+    letter-spacing: 3px;
+    text-decoration: none;
+    display: block;
+    margin-bottom: 0.3rem;
+    transition: color var(--transition);
+    animation: fadeIn 0.8s ease 0.3s both;
+}
+
+.registro-brand:hover {
+    color: var(--red-light);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+.registro-subtitle {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 2rem;
+    animation: fadeIn 0.8s ease 0.4s both;
+}
+
+/* ===== ALERTA ===== */
+
+.alert {
+    padding: 0.75rem 1rem;
+    border-radius: var(--radius-md);
+    margin-bottom: 1.25rem;
+    font-size: 0.85rem;
+    border-left: 3px solid;
+    text-align: left;
+    animation: shakeIn 0.5s ease both;
+}
+
+@keyframes shakeIn {
+    0%   { transform: translateX(-8px); opacity: 0; }
+    40%  { transform: translateX(6px); }
+    70%  { transform: translateX(-4px); }
+    100% { transform: translateX(0); opacity: 1; }
+}
+
+.alert-danger {
+    background-color: rgba(229, 57, 53, 0.1);
+    color: #ff6b6b;
+    border-color: var(--red);
+}
+
+/* ===== FORM ===== */
+
+.form-group {
+    margin-bottom: 1rem;
+    text-align: left;
+    animation: fadeIn 0.6s ease both;
+}
+
+.form-group:nth-child(1) { animation-delay: 0.5s; }
+.form-group:nth-child(2) { animation-delay: 0.6s; }
+.form-group:nth-child(3) { animation-delay: 0.7s; }
+
+.form-group input {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    font-size: 0.9rem;
+    font-family: inherit;
+    background-color: var(--surface-2);
+    border: 1px solid var(--surface-3);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    outline: none;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.form-group input::placeholder {
+    color: var(--text-muted);
+}
+
+.form-group input:focus {
+    border-color: var(--red);
+    box-shadow: 0 0 0 3px rgba(229, 57, 53, 0.12);
+}
+
+.password-hint {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    margin-top: 0.4rem;
+    padding-left: 0.25rem;
+}
+
+/* ===== BOTON ===== */
+
+.btn-submit {
+    width: 100%;
+    padding: 0.85rem;
+    margin-top: 0.5rem;
+    background-color: var(--red);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-md);
+    font-size: 0.88rem;
+    font-weight: 700;
+    font-family: inherit;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: background var(--transition), transform var(--transition);
+    animation: fadeIn 0.6s ease 0.8s both;
+}
+
+.btn-submit::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.5s ease, height 0.5s ease, opacity 0.5s ease;
+    opacity: 0;
+}
+
+.btn-submit:hover {
+    background-color: var(--red-dark);
+    transform: translateY(-2px);
+}
+
+.btn-submit:active {
+    transform: translateY(0px);
+}
+
+.btn-submit:active::after {
+    width: 300px;
+    height: 300px;
+    opacity: 0;
+}
+
+/* ===== FOOTER LINK ===== */
+
+.registro-footer {
+    margin-top: 1.5rem;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    animation: fadeIn 0.6s ease 0.9s both;
+}
+
+.registro-footer a {
+    color: var(--red);
+    text-decoration: none;
+    transition: color var(--transition);
+    position: relative;
+}
+
+.registro-footer a::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 0;
+    height: 1px;
+    background-color: var(--red-light);
+    transition: width 0.3s ease;
+}
+
+.registro-footer a:hover {
+    color: var(--red-light);
+}
+
+.registro-footer a:hover::after {
+    width: 100%;
+}
+
+/* ===== RESPONSIVE ===== */
+
+@media (max-width: 480px) {
+    .registro-card {
+        padding: 2rem 1.25rem;
+    }
+
+    .registro-brand {
+        font-size: 1.6rem;
+    }
+}

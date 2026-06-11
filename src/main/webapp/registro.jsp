@@ -1,55 +1,50 @@
-<%--
-  Created by IntelliJ IDEA.
-  User: Sharianblack
-  Date: 3/6/2026
-  Time: 21:30
-  To change this template use File | Settings | File Templates.
---%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Registro - MovieZone</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="css/registro.css">
 </head>
-<body class="bg-light d-flex align-items-center" style="height: 100vh;">
-<div class="container">
-  <div class="row justify-content-center">
-    <div class="col-md-4">
-      <div class="card shadow-sm border-0">
-        <div class="card-body text-center p-4">
-          <h3 class="mb-4">📝 Crear Cuenta</h3>
+<body>
 
-          <% String msjError = (String) request.getAttribute("mensajeError");
-            if(msjError != null) { %>
-          <div class="alert alert-danger"><%= msjError %></div>
-          <% } %>
+<div class="registro-wrapper">
+  <div class="registro-card">
 
-          <form action="usuario" method="POST">
-            <input type="hidden" name="accion" value="registrar">
-            <div class="mb-3">
-              <input type="text" name="nombre_completo" class="form-control" placeholder="Nombre Completo" required>
-            </div>
-            <div class="mb-3">
-              <input type="email" name="correo" class="form-control" placeholder="Correo electrónico" required>
-            </div>
-            <div class="mb-3">
-              <input type="password" name="password" class="form-control" placeholder="Contraseña" required>
+    <a class="registro-brand" href="index.jsp">MovieZone</a>
+    <p class="registro-subtitle">Crear Cuenta</p>
 
-              <div class="form-text text-start text-muted" style="font-size: 0.85em;">
-                🔒 Mínimo 8 caracteres, 1 mayúscula y 1 número.
-              </div>
-            </div>
-            <button type="submit" class="btn btn-success w-100">Registrarse</button>
-          </form>
-          <div class="mt-3">
-            <a href="login.jsp" class="text-decoration-none">¿Ya tienes cuenta? Inicia sesión</a>
-          </div>
-        </div>
+    <%
+      String msjError = (String) request.getAttribute("mensajeError");
+      if (msjError != null) {
+    %>
+    <div class="alert alert-danger"><%= msjError %></div>
+    <% } %>
+
+    <form action="usuario" method="POST">
+      <input type="hidden" name="accion" value="registrar">
+
+      <div class="form-group">
+        <input type="text" name="nombre_completo" placeholder="Nombre completo" required>
       </div>
+      <div class="form-group">
+        <input type="email" name="correo" placeholder="Correo electrónico" required>
+      </div>
+      <div class="form-group">
+        <input type="password" name="password" placeholder="Contraseña" required>
+        <p class="password-hint">Mínimo 8 caracteres, 1 mayúscula y 1 número.</p>
+      </div>
+
+      <button type="submit" class="btn-submit">Registrarse</button>
+    </form>
+
+    <div class="registro-footer">
+      <a href="login.jsp">¿Ya tienes cuenta? Inicia sesión</a>
     </div>
+
   </div>
 </div>
+
 </body>
 </html>

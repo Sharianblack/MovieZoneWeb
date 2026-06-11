@@ -1,10 +1,3 @@
-<%--
-  Created by IntelliJ IDEA.
-  User: Sharianblack
-  Date: 3/6/2026
-  Time: 20:34
-  To change this template use File | Settings | File Templates.
---%>
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="java.util.List" %>
 <%@ page import="model.PeliculaGuardada" %>
@@ -14,95 +7,87 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>MovieZone - Mis Favoritos</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="css/favorito.css">
 </head>
-<body class="bg-light">
+<body>
 
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-  <div class="container">
-    <a class="navbar-brand" href="index.jsp">🎬 MovieZone</a>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-toggle="target">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse" id="navbarNav">
-      <ul class="navbar-nav ms-auto align-items-center">
-        <li class="nav-item">
-          <a class="nav-link" href="index.jsp">Buscar</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="peliculas?accion=listarFavoritos">Mis Favoritos</a>
-        </li>
-        <%
-          // Leemos si hay un usuario logueado en la memoria
-          model.Usuario usuarioActivo = (model.Usuario) session.getAttribute("usuarioLogueado");
-          if (usuarioActivo != null) {
-        %>
-        <li class="nav-item ms-3">
-          <span class="text-light me-3">¡Qué más, <%= usuarioActivo.getNombreCompleto() %>! 👋</span>
-        </li>
-        <li class="nav-item">
-          <a class="btn btn-outline-danger btn-sm" href="usuario?accion=logout">Cerrar Sesión</a>
-        </li>
-        <% } else { %>
-        <li class="nav-item ms-3">
-          <a class="btn btn-outline-light btn-sm" href="login.jsp">Iniciar Sesión</a>
-        </li>
-        <% } %>
-      </ul>
-    </div>
+<nav class="navbar">
+  <div class="navbar-inner">
+    <a class="navbar-brand" href="index.jsp">MovieZone</a>
+
+    <ul class="navbar-links">
+      <li><a href="index.jsp">Buscar</a></li>
+
+      <%
+        model.Usuario usuarioActivo = (model.Usuario) session.getAttribute("usuarioLogueado");
+        if (usuarioActivo != null) {
+      %>
+      <% if ("ADMIN".equals(usuarioActivo.getRol())) { %>
+      <li><a class="link-admin" href="usuario?accion=panelAdmin">Panel Admin</a></li>
+      <% } %>
+      <li><span class="user-greeting">Qué más, <%= usuarioActivo.getNombreCompleto() %>!</span></li>
+      <li><a class="btn-logout" href="usuario?accion=logout">Cerrar Sesión</a></li>
+      <% } else { %>
+      <li><a class="btn-login" href="login.jsp">Iniciar Sesión</a></li>
+      <% } %>
+    </ul>
   </div>
 </nav>
 
-<div class="container mt-5">
-  <div class="row">
-    <div class="col-12 text-center mb-4">
-      <h1>Mis Películas Guardadas ⭐</h1>
-      <p class="text-muted">Las películas que tienes en tu base de datos PostgreSQL</p>
+<div class="container">
+
+  <div class="favoritos-header">
+    <div class="favoritos-header-text">
+      <h1>Mis <span>Favoritos</span></h1>
+      <p>Las películas que tienes guardadas en tu base de datos</p>
     </div>
+    <a href="peliculas?accion=descargarPDF" class="btn-pdf">Descargar Reporte PDF</a>
   </div>
 
-  <div class="row mt-4">
+  <%
+    List<PeliculaGuardada> favoritos = (List<PeliculaGuardada>) request.getAttribute("listaFavoritos");
+
+    if (favoritos != null && !favoritos.isEmpty()) {
+  %>
+
+  <div class="favoritos-grid">
     <%
-      // Recuperamos la lista de la base de datos
-      List<PeliculaGuardada> favoritos = (List<PeliculaGuardada>) request.getAttribute("listaFavoritos");
-
-      if (favoritos != null && !favoritos.isEmpty()) {
-        for (PeliculaGuardada peli : favoritos) {
+      for (PeliculaGuardada peli : favoritos) {
     %>
+    <div class="card">
+      <div class="card-poster">
+        <img src="<%= peli.getPosterUrl() %>" alt="Poster de <%= peli.getTitulo() %>">
+      </div>
+      <div class="card-body">
+        <p class="card-title"><%= peli.getTitulo() %></p>
+        <p class="card-categoria"><%= peli.getCategoriaLocal() %></p>
+        <p class="card-id">ID TMDB: <%= peli.getIdExternoApi() %></p>
 
-    <div class="col-md-3 mb-4">
-      <div class="card h-100 shadow-sm border-success">
-        <img src="<%= peli.getPosterUrl() %>" class="card-img-top" alt="Poster" style="height: 400px; object-fit: cover;">
-        <div class="card-body d-flex flex-column">
-          <h5 class="card-title text-success"><%= peli.getTitulo() %></h5>
-          <p class="card-text text-muted"><strong>Categoría:</strong> <%= peli.getCategoriaLocal() %></p>
-          <p class="card-text text-muted" style="font-size: 0.85em;">ID TMDB: <%= peli.getIdExternoApi() %></p>
-
-          <div class="mt-auto">
-            <form action="peliculas" method="POST" class="mt-2">
-              <input type="hidden" name="accion" value="eliminarLocal">
-              <input type="hidden" name="idApi" value="<%= peli.getIdExternoApi() %>">
-              <button type="submit" class="btn btn-outline-danger w-100" onclick="return confirm('¿Seguro que quieres borrarla, mijo?');">
-                🗑️ Eliminar
-              </button>
-            </form>
-          </div>
-        </div>
+        <form action="peliculas" method="POST">
+          <input type="hidden" name="accion" value="eliminarLocal">
+          <input type="hidden" name="idApi" value="<%= peli.getIdExternoApi() %>">
+          <button type="submit" class="btn-eliminar"
+                  onclick="return confirm('¿Seguro que quieres borrarla?')">
+            Eliminar
+          </button>
+        </form>
       </div>
     </div>
-
     <%
-      } // Fin del for
-    } else {
+      }
     %>
-    <div class="col-12 text-center mt-5">
-      <h4 class="text-secondary">Aún no has guardado ninguna película. 🎬</h4>
-      <a href="index.jsp" class="btn btn-primary mt-3">Ir a buscar películas</a>
-    </div>
-    <% } %>
   </div>
+
+  <%
+  } else {
+  %>
+  <div class="favoritos-vacio">
+    <p>Aún no has guardado ninguna película.</p>
+    <a href="index.jsp" class="btn-buscar">Ir a buscar películas</a>
+  </div>
+  <% } %>
+
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

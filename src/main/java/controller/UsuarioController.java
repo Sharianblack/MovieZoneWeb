@@ -35,7 +35,7 @@ public class UsuarioController extends HttpServlet {
             String correo = request.getParameter("correo");
             String password = request.getParameter("password");
 
-            // NUEVO: Validación de seguridad de la contraseña en el servidor
+            // Validación de seguridad de la contraseña en el servidor
             // Verifica que tenga al menos 8 caracteres, una mayúscula, una minúscula y un número
             if (!password.matches("^(?=.*\\d)(?=.*[a-z])(?=.*[A-Z]).{8,}$")) {
                 request.setAttribute("mensajeError", "La contraseña es muy débil, mijo. Sigue las instrucciones.");
@@ -83,6 +83,19 @@ public class UsuarioController extends HttpServlet {
                 request.getRequestDispatcher("login.jsp").forward(request, response);
             }
         }
+        // ==========================================
+        // 3. ZONA DE ELIMINAR USUARIO (Panel Admin)
+        // ==========================================
+        else if ("eliminarUsuario".equals(accion)) {
+            // Atrapamos el ID que manda el botón rojo del panel
+            int idEliminar = Integer.parseInt(request.getParameter("idUsuario"));
+
+            // Lo borramos de la base de datos
+            usuarioDAO.eliminarUsuario(idEliminar);
+
+            // Recargamos el panel automáticamente para que desaparezca de la lista
+            response.sendRedirect("usuario?accion=panelAdmin");
+        }
     }
 
     // ==========================================
@@ -101,6 +114,19 @@ public class UsuarioController extends HttpServlet {
 
             // Lo mandamos de regreso al login
             response.sendRedirect("login.jsp");
+        } else if ("panelAdmin".equals(accion)) {
+            // Protección: Solo entra si es ADMIN
+            jakarta.servlet.http.HttpSession sesion = request.getSession();
+            Usuario usuarioActivo = (Usuario) sesion.getAttribute("usuarioLogueado");
+
+            if (usuarioActivo != null && "ADMIN".equals(usuarioActivo.getRol())) {
+                java.util.List<Usuario> listaUsuarios = usuarioDAO.listarUsuariosParaAdmin();
+                request.setAttribute("listaUsuarios", listaUsuarios);
+                request.getRequestDispatcher("admin.jsp").forward(request, response);
+            } else {
+                response.sendRedirect("index.jsp"); // Si es un intruso, lo pateamos al index
+            }
         }
+
     }
 }
