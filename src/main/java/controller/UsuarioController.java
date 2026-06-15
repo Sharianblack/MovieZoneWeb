@@ -10,6 +10,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
+// Importamos esto para generar el token loco
+import java.util.UUID;
 
 @WebServlet(name = "UsuarioController", urlPatterns = {"/usuario"})
 public class UsuarioController extends HttpServlet {
@@ -30,30 +32,43 @@ public class UsuarioController extends HttpServlet {
         // ==========================================
         // 1. ZONA DE REGISTRO
         // ==========================================
+        // ==========================================
+        // 1. ZONA DE REGISTRO
+        // ==========================================
         if ("registrar".equals(accion)) {
             String nombreCompleto = request.getParameter("nombre_completo");
             String correo = request.getParameter("correo");
             String password = request.getParameter("password");
 
-            // Validación de seguridad de la contraseña en el servidor
-            // Verifica que tenga al menos 8 caracteres, una mayúscula, una minúscula y un número
+            // Validación de seguridad de la contraseña
             if (!password.matches("^(?=.*\\d)(?=.*[a-z])(?=.*[A-Z]).{8,}$")) {
                 request.setAttribute("mensajeError", "La contraseña es muy débil, mijo. Sigue las instrucciones.");
                 request.getRequestDispatcher("registro.jsp").forward(request, response);
-                return; // Cortamos la ejecución aquí para que no guarde nada
+                return;
             }
 
-            // Si pasa la prueba de seguridad, armamos el usuario
+            // ====================================================
+            // ¡AQUÍ ENCRIPTAMOS LA CONTRASEÑA ANTES DE GUARDARLA!
+            // ====================================================
+            String passwordEncriptada = org.mindrot.jbcrypt.BCrypt.hashpw(password, org.mindrot.jbcrypt.BCrypt.gensalt());
+
+            // 1. Generamos el código único e irrepetible para el correo
+            String tokenGenerado = UUID.randomUUID().toString();
+
             Usuario nuevoUsuario = new Usuario();
             nuevoUsuario.setNombreCompleto(nombreCompleto);
             nuevoUsuario.setCorreo(correo);
-            nuevoUsuario.setPassword(password);
+            // Le pasamos la clave encriptada, ya no la normal
+            nuevoUsuario.setPassword(passwordEncriptada);
 
-            boolean exito = usuarioDAO.registrarUsuario(nuevoUsuario);
+            // 2. Le pasamos el usuario (ya encriptado) y el token al DAO
+            boolean exito = usuarioDAO.registrarUsuario(nuevoUsuario, tokenGenerado);
 
             if (exito) {
-                service.CorreoService.enviarCorreoBienvenida(nuevoUsuario.getCorreo(), nuevoUsuario.getNombreCompleto());
-                request.setAttribute("mensajeExito", "Registro exitoso. ¡Revisa tu correo y luego inicia sesión!");
+                // 3. ¡DISPARAMOS EL CORREO DE VERIFICACIÓN!
+                service.CorreoService.enviarCorreoVerificacion(nuevoUsuario.getCorreo(), nuevoUsuario.getNombreCompleto(), tokenGenerado);
+
+                request.setAttribute("mensajeExito", "¡Registro casi listo! Revisa tu correo (y la carpeta Spam) para verificar tu cuenta antes de entrar.");
                 request.getRequestDispatcher("login.jsp").forward(request, response);
             } else {
                 request.setAttribute("mensajeError", "Error al registrar. Revisa que el correo no esté repetido.");
@@ -67,19 +82,16 @@ public class UsuarioController extends HttpServlet {
             String correo = request.getParameter("correo");
             String password = request.getParameter("password");
 
-            // Validamos con tu DAO que ya tiene BCrypt
             Usuario usuario = usuarioDAO.validarLogin(correo, password);
 
             if (usuario != null) {
                 // ¡SESIÓN EXITOSA!
                 jakarta.servlet.http.HttpSession sesion = request.getSession();
                 sesion.setAttribute("usuarioLogueado", usuario);
-
-                // MAGIA AQUÍ: Esto es lo que te manda de regreso a la página principal
                 response.sendRedirect("index.jsp");
             } else {
-                // LOGIN FALLIDO
-                request.setAttribute("mensajeError", "Correo o contraseña incorrectos. Pilas ahí.");
+                // LOGIN FALLIDO (Puede ser por mala clave o porque no ha verificado el correo)
+                request.setAttribute("mensajeError", "Datos incorrectos o cuenta no verificada. Pilas ahí.");
                 request.getRequestDispatcher("login.jsp").forward(request, response);
             }
         }
@@ -87,19 +99,14 @@ public class UsuarioController extends HttpServlet {
         // 3. ZONA DE ELIMINAR USUARIO (Panel Admin)
         // ==========================================
         else if ("eliminarUsuario".equals(accion)) {
-            // Atrapamos el ID que manda el botón rojo del panel
             int idEliminar = Integer.parseInt(request.getParameter("idUsuario"));
-
-            // Lo borramos de la base de datos
             usuarioDAO.eliminarUsuario(idEliminar);
-
-            // Recargamos el panel automáticamente para que desaparezca de la lista
             response.sendRedirect("usuario?accion=panelAdmin");
         }
     }
 
     // ==========================================
-    // 3. ZONA DE LOGOUT (Peticiones GET)
+    // 4. PETICIONES GET (Logout, Admin y Verificación)
     // ==========================================
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
@@ -107,15 +114,18 @@ public class UsuarioController extends HttpServlet {
 
         String accion = request.getParameter("accion");
 
+        // ------------------------------------------
+        // A. CERRAR SESIÓN
+        // ------------------------------------------
         if ("logout".equals(accion)) {
-            // Agarramos la sesión actual y la matamos
             jakarta.servlet.http.HttpSession sesion = request.getSession();
             sesion.invalidate();
-
-            // Lo mandamos de regreso al login
             response.sendRedirect("login.jsp");
-        } else if ("panelAdmin".equals(accion)) {
-            // Protección: Solo entra si es ADMIN
+        }
+        // ------------------------------------------
+        // B. PANEL DE ADMINISTRADOR
+        // ------------------------------------------
+        else if ("panelAdmin".equals(accion)) {
             jakarta.servlet.http.HttpSession sesion = request.getSession();
             Usuario usuarioActivo = (Usuario) sesion.getAttribute("usuarioLogueado");
 
@@ -124,9 +134,23 @@ public class UsuarioController extends HttpServlet {
                 request.setAttribute("listaUsuarios", listaUsuarios);
                 request.getRequestDispatcher("admin.jsp").forward(request, response);
             } else {
-                response.sendRedirect("index.jsp"); // Si es un intruso, lo pateamos al index
+                response.sendRedirect("index.jsp");
             }
         }
+        // ------------------------------------------
+        // C. ¡NUEVO! VERIFICAR CUENTA DESDE EL CORREO
+        // ------------------------------------------
+        else if ("verificar".equals(accion)) {
+            // Atrapamos el token que viene en la URL del correo
+            String token = request.getParameter("token");
 
+            // Verificamos en la base de datos
+            if (usuarioDAO.verificarCuenta(token)) {
+                request.setAttribute("mensajeExito", "¡De lujo! Tu cuenta ha sido verificada. Ya puedes iniciar sesión.");
+            } else {
+                request.setAttribute("mensajeError", "El enlace es inválido o la cuenta ya fue verificada.");
+            }
+            request.getRequestDispatcher("login.jsp").forward(request, response);
+        }
     }
 }

@@ -8,15 +8,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>MovieZone - Búsqueda</title>
     <link rel="icon" href="img/logo.png" type="image/png">
-    <link rel="stylesheet" href="css/index.css">
+    <link rel="stylesheet" href="css/index.css?v=2.0">
 </head>
 <body>
 
 <nav class="navbar">
     <div class="navbar-inner">
-        <a class="navbar-brand" href="index.jsp">MovieZone</a>
+        <div class="navbar-header">
+            <a class="navbar-brand" href="index.jsp">MovieZone</a>
+            <button class="hamburger-btn" onclick="toggleMenu()">☰</button>
+        </div>
 
-        <ul class="navbar-links">
+        <ul class="navbar-links" id="navLinks">
             <li><a href="index.jsp">Buscar</a></li>
             <li><a href="peliculas?accion=listarFavoritos">Mis Favoritos</a></li>
 
@@ -101,7 +104,7 @@
                 <p class="card-title"><%= peli.getTitulo() %></p>
                 <p class="card-subtitle">ID TMDB: <%= peli.getIdExternoApi() %></p>
 
-                <form action="peliculas" method="POST">
+                <form onsubmit="guardarPeliculaAsync(event, this)">
                     <input type="hidden" name="accion" value="guardarLocal">
                     <input type="hidden" name="idApi" value="<%= peli.getIdExternoApi() %>">
                     <input type="hidden" name="titulo" value="<%= peli.getTitulo() %>">
@@ -126,5 +129,49 @@
 
 </div>
 
+<script>
+    function guardarPeliculaAsync(event, formulario) {
+        // 1. Detenemos la recarga de la página
+        event.preventDefault();
+
+        // 2. Empaquetamos los datos ocultos de la película
+        let formData = new URLSearchParams(new FormData(formulario));
+
+        // 3. Enviamos los datos a Java en segundo plano usando Fetch
+        fetch('peliculas', {
+            method: 'POST',
+            body: formData
+        }).then(response => {
+
+            // 4. Transformamos el botón para avisarle al usuario que se guardó
+            let boton = formulario.querySelector('button[type="submit"]');
+            boton.innerHTML = '¡Agregada!';
+
+            // Le metemos estilos para que se vuelva rojo oscuro y resalte
+            boton.style.backgroundColor = 'var(--red-dark)';
+            boton.style.color = '#ffffff';
+            boton.style.borderColor = 'var(--red-dark)';
+            boton.style.transform = 'scale(1.02)';
+
+            // Desactivamos el botón para que no la guarde 2 veces
+            boton.disabled = true;
+
+        }).catch(error => {
+            console.error("Error al guardar la película:", error);
+        });
+    }
+    // Abrir y cerrar menú hamburguesa
+    function toggleMenu() {
+        var menu = document.getElementById("navLinks");
+        menu.classList.toggle("active");
+    }
+</script>
+<script>
+    // Abrir y cerrar menú hamburguesa
+    function toggleMenu() {
+        var menu = document.getElementById("navLinks");
+        menu.classList.toggle("active");
+    }
+</script>
 </body>
 </html>

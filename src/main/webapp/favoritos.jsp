@@ -1,6 +1,6 @@
-<%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ page import="java.util.List" %>
 <%@ page import="model.PeliculaGuardada" %>
+<%@ page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" language="java" %>
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -8,15 +8,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>MovieZone - Mis Favoritos</title>
   <link rel="icon" href="img/logo.png" type="image/png">
-  <link rel="stylesheet" href="css/favorito.css">
+  <link rel="stylesheet" href="css/favorito.css?v=3.0">
 </head>
 <body>
 
 <nav class="navbar">
   <div class="navbar-inner">
-    <a class="navbar-brand" href="index.jsp">MovieZone</a>
 
-    <ul class="navbar-links">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="index.jsp">MovieZone</a>
+      <button class="hamburger-btn" onclick="toggleMenu()">☰</button>
+    </div>
+
+    <ul class="navbar-links" id="navLinks">
       <li><a href="index.jsp">Buscar</a></li>
 
       <%
@@ -32,9 +36,9 @@
       <li><a class="btn-login" href="login.jsp">Iniciar Sesión</a></li>
       <% } %>
     </ul>
+
   </div>
 </nav>
-
 <div class="container">
 
   <div class="favoritos-header">
@@ -145,6 +149,12 @@
     }
   }
 </script>
-
+<script>
+  // Abrir y cerrar menú hamburguesa
+  function toggleMenu() {
+    var menu = document.getElementById("navLinks");
+    menu.classList.toggle("active");
+  }
+</script>
 </body>
 </html>

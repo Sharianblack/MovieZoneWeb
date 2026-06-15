@@ -42,10 +42,11 @@ public class UsuarioDAO {
     // LOGIN COMPARANDO EL HASH
     // ==========================================
     public Usuario validarLogin(String correo, String passwordIngresado) {
-        String sql = "SELECT * FROM usuarios WHERE correo = ?";
+        // Le agregamos la validación del correo verificado
+        String sql = "SELECT * FROM usuarios WHERE correo = ? AND verificado = true";
         Usuario usuario = null;
 
-        try (Connection con = ConexionDB.obtenerConexion();
+        try (Connection con = ConexionDB.obtenerConexion(); //
              PreparedStatement ps = con.prepareStatement(sql)) {
 
             ps.setString(1, correo);
@@ -54,20 +55,18 @@ public class UsuarioDAO {
                 if (rs.next()) {
                     String hashEnBaseDatos = rs.getString("contrasena");
 
-                    if (BCrypt.checkpw(passwordIngresado, hashEnBaseDatos)) {
+                    // Verificamos la contraseña encriptada
+                    if (org.mindrot.jbcrypt.BCrypt.checkpw(passwordIngresado, hashEnBaseDatos)) {
                         usuario = new Usuario();
                         usuario.setIdUsuario(rs.getInt("id_usuario"));
                         usuario.setNombreCompleto(rs.getString("nombre_completo"));
                         usuario.setCorreo(rs.getString("correo"));
-
-                        // NUEVO: Leemos el rol desde la base de datos
                         usuario.setRol(rs.getString("rol"));
-
-                        usuario.setPassword("");
+                        usuario.setPassword(""); // Borramos la clave por seguridad en la sesión
                     }
                 }
             }
-        } catch (SQLException e) {
+        } catch (Exception e) {
             System.out.println("Error al validar login.");
             e.printStackTrace();
         }
@@ -120,6 +119,44 @@ public class UsuarioDAO {
         } catch (SQLException e) {
             System.out.println("Error al eliminar usuario.");
             e.printStackTrace();
+            return false;
+        }
+    }
+    // 1. Modifica tu método de registro para que guarde el token y el verificado en FALSE
+    // Método de registro corregido con los nombres exactos de tu base de datos
+    public boolean registrarUsuario(Usuario u, String token) {
+
+        // ¡AQUÍ ESTÁ LA MAGIA! Cambiamos "password" por "contrasena" y "USER" por "CLIENTE"
+        String sql = "INSERT INTO usuarios (nombre_completo, correo, contrasena, rol, verificado, token_verificacion) VALUES (?, ?, ?, 'CLIENTE', false, ?)";
+
+        try  (Connection con = ConexionDB.obtenerConexion();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setString(1, u.getNombreCompleto());
+            ps.setString(2, u.getCorreo());
+
+            // Ojo: Aquí en Java usamos u.getPassword() porque así se llama el atributo en tu modelo Usuario,
+            // pero se va a guardar en la columna "contrasena" gracias al SQL de arriba.
+            ps.setString(3, u.getPassword());
+            ps.setString(4, token);
+
+            return ps.executeUpdate() > 0;
+        } catch (Exception e) {
+            System.out.println("Error al registrar: " + e.getMessage());
+            return false;
+        }
+    }
+
+    // 2. Método NUEVO para verificar la cuenta cuando le dan clic al correo
+    public boolean verificarCuenta(String token) {
+        String sql = "UPDATE usuarios SET verificado = true, token_verificacion = NULL WHERE token_verificacion = ?";
+        try (Connection con = ConexionDB.obtenerConexion();
+             PreparedStatement ps = con.prepareStatement(sql)) {
+
+            ps.setString(1, token);
+            return ps.executeUpdate() > 0; // Retorna true si encontró el token y actualizó
+        } catch (Exception e) {
+            System.out.println("Error al verificar cuenta: " + e.getMessage());
             return false;
         }
     }

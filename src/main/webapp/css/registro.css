@@ -333,3 +333,34 @@ body::after {
         font-size: 1.6rem;
     }
 }
+/* ===== BOTON MOSTRAR CONTRASEÑA ===== */
+.password-group {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.password-group input {
+    padding-right: 45px !important;
+    width: 100%;
+}
+
+.btn-toggle-password {
+    position: absolute;
+    right: 12px;
+    background: transparent !important;
+    border: none !important;
+    color: var(--text-muted);
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color var(--transition);
+    outline: none;
+    height: 100%;
+}
+
+.btn-toggle-password:hover {
+    color: var(--red-light);
+}

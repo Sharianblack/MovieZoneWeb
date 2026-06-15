@@ -549,19 +549,96 @@ body {
 }
 
 /* ===== RESPONSIVE ===== */
+/* ===== HAMBURGUESA Y NAVBAR ===== */
+.navbar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: auto;
+}
 
+.hamburger-btn {
+    display: none;
+    background: none;
+    border: none;
+    color: var(--red);
+    font-size: 2.2rem;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0;
+    transition: 0.2s ease;
+}
+
+.hamburger-btn:hover {
+    color: var(--red-light);
+}
+
+/* =========================================
+   RESPONSIVE UNIFICADO (CELULARES)
+   ========================================= */
 @media (max-width: 768px) {
+    /* 1. Barra de Navegación */
     .navbar {
         height: auto;
-        padding: 0.75rem 1rem;
+        padding: 1rem;
+    }
+
+    .navbar-header {
+        width: 100%;
+    }
+
+    .hamburger-btn {
+        display: block;
     }
 
     .navbar-inner {
         flex-direction: column;
-        align-items: flex-start;
+        align-items: stretch;
         gap: 0.5rem;
     }
 
+    .navbar-links {
+        display: none;
+        flex-direction: column;
+        width: 100%;
+        gap: 0.5rem;
+        padding-top: 1rem;
+        margin-top: 0.5rem;
+        border-top: 1px solid var(--surface-3);
+    }
+
+    .navbar-links.active {
+        display: flex;
+        animation: deslizarMenu 0.3s ease forwards;
+    }
+
+    @keyframes deslizarMenu {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .navbar-links li { width: 100%; }
+
+    .navbar-links a,
+    .btn-login,
+    .btn-logout {
+        display: block;
+        width: 100%;
+        text-align: center;
+        padding: 0.85rem;
+        font-size: 1rem;
+        border-radius: var(--radius-md);
+    }
+
+    .user-greeting {
+        display: block;
+        text-align: center;
+        padding: 0.85rem 0;
+        width: 100%;
+        color: var(--red-light);
+    }
+
+    /* 2. Elementos propios de Favoritos */
     .favoritos-header {
         flex-direction: column;
         align-items: flex-start;
